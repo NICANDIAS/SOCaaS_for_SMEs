@@ -1,0 +1,54 @@
+version: "3.9"
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    # Apple Silicon is fine; if you ever hit arch issues, uncomment:
+    # platform: linux/arm64
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.2
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    # platform: linux/arm64
+
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.13.0
+    ports:
+      - "1514:1514"         # TCP
+      - "1514:1514/udp"     # (optional) UDP
+      - "1515:1515"
+      - "55000:55000"
+    volumes:
+      - wazuh_data:/var/ossec/data
+      - wazuh_logs:/var/ossec/logs
+  
+  wazuh-filebeat:
+    image: docker.elastic.co/beats/filebeat:8.14.2
+    container_name: wazuh-filebeat
+    depends_on:
+      - wazuh-manager
+    user: root
+    command: ["--strict.perms=false"]
+    volumes:
+      - ./wazuh-filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - wazuh_logs:/var/ossec/logs:ro
+
+volumes:
+  esdata:
+  wazuh_data:
+  wazuh_logs:
+

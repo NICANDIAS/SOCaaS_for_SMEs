@@ -1,0 +1,17 @@
+filebeat.inputs:
+  - type: filestream
+    id: wazuh-alerts
+    paths: ["/var/ossec/logs/alerts/alerts.json"]
+    parsers:
+      - ndjson: {}
+
+processors:
+  - add_fields:
+      target: event
+      fields:
+        module: wazuh
+
+output.elasticsearch:
+  hosts: ["http://host.docker.internal:9200"]
+setup.ilm.enabled: false
+

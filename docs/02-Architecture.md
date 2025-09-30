@@ -40,4 +40,4 @@ This dual-pipeline design (raw + curated) provides **full visibility** while red
   This will add **network-level detection** and enable correlation across host + network + alert data.
 
 ## Diagram
-![SOCaaS Architecture](images/architecture.png)
+![SOCaaS Architecture](images/Architecture.png)

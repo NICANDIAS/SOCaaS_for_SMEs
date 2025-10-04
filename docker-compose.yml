@@ -1,7 +1,7 @@
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.14.2
-    container_name: elasticsearch
+    #container_name: elasticsearch
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -15,7 +15,7 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.14.2
-    container_name: kibana
+    #container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
@@ -37,13 +37,13 @@ services:
 
   wazuh-filebeat:
     image: docker.elastic.co/beats/filebeat:8.14.2
-    container_name: wazuh-filebeat
+    #container_name: wazuh-filebeat
     depends_on:
       - wazuh-manager
     user: root
     command: ["--strict.perms=false"]
     volumes:
-      - ./wazuh-filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./infrastructure/beats/wazuh-filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - wazuh_logs:/var/ossec/logs:ro
 
 volumes:

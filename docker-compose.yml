@@ -26,6 +26,14 @@ services:
 
   wazuh-manager:
     image: wazuh/wazuh-manager:4.13.0
+    # command: [
+    #     "/bin/sh",
+    #     "-lc",
+    #     "mkdir -p /etc/services.d/filebeat /etc/services.d/indexer-connector && \
+    #     : > /etc/services.d/filebeat/down && \
+    #     : > /etc/services.d/indexer-connector/down && \
+    #     /entrypoint.sh",
+    #   ]
     ports:
       - "1514:1514" # TCP
       - "1514:1514/udp" # (optional) UDP
@@ -34,6 +42,8 @@ services:
     volumes:
       - wazuh_data:/var/ossec/data
       - wazuh_logs:/var/ossec/logs
+      - ./wazuh-mask/filebeat:/etc/services.d/filebeat
+      - ./wazuh-mask/indexer-connector:/etc/services.d/indexer-connector
 
   wazuh-filebeat:
     image: docker.elastic.co/beats/filebeat:8.14.2

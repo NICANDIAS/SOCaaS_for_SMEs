@@ -1,5 +1,7 @@
 ## 1. Security KPI Dashboard
 
+![Security KPI Dashboard](./images/dashboard-security-kpi.png)
+
 **Purpose**  
 Provides a high-level overview of the lab’s overall security posture. It highlights total alerts, high/critical alerts, unique hosts generating alerts, authentication outcomes, and basic coverage metrics.
 

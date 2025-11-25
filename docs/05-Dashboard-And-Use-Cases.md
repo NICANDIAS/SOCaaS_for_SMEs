@@ -106,9 +106,10 @@ SOC leads, SME owners, GRC teams, auditors, or anyone needing a quick compliance
    - *Action:* Start with frameworks showing the highest failure ratio.
 
 ### Example Observations
-- Two Windows and two Linux hosts failed multiple frameworks due to missing updates and weak configurations.  
-- Vulnerability scanning detected outdated packages on Ubuntu clients.  
-- SCA showed consistent failures across CIS v8 due to password policy and SSH configuration gaps.
+- On 2025-11-25, host `WIN-AVEKJEPJI4` failed PCI DSS and NIST 800-53 checks due to missing 4688 logging.
+- Linux host `kali` shows FIM and SCA passing, but no vulnerability data yet (scanner not fully configured).
+- Most non-compliance is currently driven by SCA failures rather than FIM.
+
 
 ### Limitations & Next Improvements
 - No Suricata or network-based compliance signals yet.  

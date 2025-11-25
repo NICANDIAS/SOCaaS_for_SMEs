@@ -53,3 +53,64 @@ SOC Lead / SME Owner who needs a quick daily snapshot of risk and operational he
 - Suricata IDS/IPS data not yet integrated.  
 - Limited user-level aggregation — dashboards currently focus on hosts rather than business roles.  
 - No correlation panels yet (e.g., Wazuh alerts + raw logs + network events).
+
+
+## 2. Compliance Dashboard
+
+![Compliance Dashboard - Panel Set 1](./images/dashboard-compliance1.png)
+![Compliance Dashboard - Panel Set 2](./images/dashboard-compliance2.png)
+
+### Purpose  
+Provides a consolidated view of endpoint compliance across the environment, including Security Configuration Assessment (SCA), Vulnerability status, and File Integrity Monitoring (FIM).  
+This dashboard highlights which hosts fail key compliance frameworks and what actions are required to restore compliance.
+
+### Primary Audience  
+SOC leads, SME owners, GRC teams, auditors, or anyone needing a quick compliance snapshot without digging into raw event logs.
+
+### Key Questions This Dashboard Answers
+- Which hosts are **non-compliant** with major frameworks?
+- How many vulnerabilities exist, and how severe are they?
+- What is the current status of **SCA**, **FIM**, and **vulnerability scanning**?
+- Which frameworks show the highest failure rates? (NIST 800-53, ISO 27001:2013, SOC 2, PCI-DSS v3.2.1, CIS Controls v8)
+- Which hosts require immediate remediation?
+- How many checks failed vs passed across each framework?
+
+### Data Sources
+- **Windows & Linux telemetry** – via Winlogbeat and Filebeat (`ds-winlogbeat-*`, `ds-filebeat-*`)
+- **Wazuh alerts** – SCA, FIM, vulnerability, and compliance modules (`wazuh-*` or mapped to Filebeat indices)
+
+### Main Visualizations (Panels)
+1. **Framework non-compliance tiles**  
+   Shows the number of hosts failing each compliance standard.  
+   - *How to read:* Higher numbers = more hosts failing the framework.  
+   - *Action:* Prioritise remediation starting with most critical frameworks.
+
+2. **“How to become compliant” guidance panel**  
+   Text panel summarising specific steps needed to fix common SCA/FIM/Vuln issues.  
+   - *How to read:* Follow per-OS and per-alert remediation notes.  
+   - *Action:* Apply patches, enable logging, modify SSH settings, allowlist legitimate file changes.
+
+3. **Top 50 hosts table (SCA / FIM / Vulnerabilities)**  
+   Shows host-level pass/fail results.  
+   - *How to read:* Green = compliant, Red = failing.  
+   - *Action:* Investigate red rows immediately — especially hosts with multiple categories failing.
+
+4. **Framework Compliance Heatmap**  
+   Displays compliance per host across multiple frameworks.  
+   - *How to read:* Each cell represents pass/fail for a given host and framework.  
+   - *Action:* Identify hosts failing the most frameworks to prioritise risk reduction.
+
+5. **SCA Checks by Framework (Failed vs Non-failed)**  
+   A bar chart comparing failed vs passed SCA checks for each framework.  
+   - *How to read:* Long red bars = weak controls or misconfigurations.  
+   - *Action:* Start with frameworks showing the highest failure ratio.
+
+### Example Observations
+- Two Windows and two Linux hosts failed multiple frameworks due to missing updates and weak configurations.  
+- Vulnerability scanning detected outdated packages on Ubuntu clients.  
+- SCA showed consistent failures across CIS v8 due to password policy and SSH configuration gaps.
+
+### Limitations & Next Improvements
+- No Suricata or network-based compliance signals yet.  
+- No integration with ticketing/workflow (e.g., Jira for compliance tasks).  
+- FIM coverage only includes default monitored paths — expansion recommended.  

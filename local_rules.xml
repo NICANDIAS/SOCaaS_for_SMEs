@@ -1,0 +1,73 @@
+<!-- ══════════════════════════════════════════
+     TIGARSEC BASE RULES
+     Applies to ALL clients regardless of sector
+     Rule IDs: 100001 - 100099
+     ══════════════════════════════════════════ -->
+
+<group name="tigarsec,base,authentication,">
+
+  <!-- SSH brute force escalation -->
+  <rule id="100001" level="12">
+    <if_sid>5712</if_sid>
+    <description>TIGARSEC: SSH brute force attack detected (10+ attempts)</description>
+    <group>authentication_failures,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- Successful login after brute force -->
+  <rule id="100002" level="14">
+    <if_sid>5715</if_sid>
+    <frequency>1</frequency>
+    <timeframe>300</timeframe>
+    <if_matched_sid>100001</if_matched_sid>
+    <description>TIGARSEC: Successful login after brute force — possible breach</description>
+    <group>authentication_success,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- New user account created -->
+  <rule id="100003" level="10">
+    <if_sid>5902</if_sid>
+    <description>TIGARSEC: New user account created on system</description>
+    <group>account_changes,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- User added to privileged group -->
+  <rule id="100004" level="12">
+    <if_sid>5903</if_sid>
+    <match>sudo|admin|wheel|root</match>
+    <description>TIGARSEC: User added to privileged group</description>
+    <group>account_changes,privilege_escalation,</group>
+  </rule>
+
+  <!-- Direct root SSH login -->
+  <rule id="100005" level="13">
+    <if_sid>5715</if_sid>
+    <match>root</match>
+    <description>TIGARSEC: Direct root SSH login — policy violation</description>
+    <group>authentication_success,privilege_escalation,</group>
+  </rule>
+
+  <!-- Critical system file modified -->
+  <rule id="100006" level="12">
+    <if_sid>550</if_sid>
+    <field name="file">/etc/passwd|/etc/shadow|/etc/sudoers|/etc/ssh</field>
+    <description>TIGARSEC: Critical system file modified — $(file)</description>
+    <group>file_integrity,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- Critical CVE detected -->
+  <rule id="100007" level="12">
+    <if_sid>23501</if_sid>
+    <field name="vulnerability.severity">Critical</field>
+    <description>TIGARSEC: Critical CVE on $(agent.name) — $(vulnerability.cve)</description>
+    <group>vulnerability,</group>
+  </rule>
+
+  <!-- High CVE detected -->
+  <rule id="100008" level="10">
+    <if_sid>23501</if_sid>
+    <field name="vulnerability.severity">High</field>
+    <description>TIGARSEC: High CVE on $(agent.name) — $(vulnerability.cve)</description>
+    <group>vulnerability,</group>
+  </rule>
+
+</group>

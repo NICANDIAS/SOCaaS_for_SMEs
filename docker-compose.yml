@@ -1,3 +1,4 @@
+name: socaas_for_smes
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.14.2
@@ -45,6 +46,10 @@ services:
       - ./wazuh-mask/filebeat:/etc/services.d/filebeat
       - ./wazuh-mask/indexer-connector:/etc/services.d/indexer-connector
       - ./ossec.conf:/var/ossec/etc/ossec.conf:ro
+      - ./local_rules.xml:/var/ossec/etc/rules/local_rules.xml
+      - ./tigarsec-fintech-rules.xml:/var/ossec/etc/rules/tigarsec-fintech-rules.xml
+      - ./tigarsec-healthcare-rules.xml:/var/ossec/etc/rules/tigarsec-healthcare-rules.xml
+      - ./tigarsec-legal-rules.xml:/var/ossec/etc/rules/tigarsec-legal-rules.xml
     networks:
       - socaas
 
@@ -77,11 +82,57 @@ services:
     networks:
       - socaas
 
+  cassandra:
+    image: cassandra:4.1
+    container_name: thehive-cassandra
+    environment:
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=256M
+    volumes:
+      - thehive-cassandra-data:/var/lib/cassandra
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' >/dev/null 2>&1 || exit 1"]
+      start_period: 90s
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - socaas
+
+  thehive:
+    image: strangebee/thehive:5.3
+    container_name: thehive
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      - CQL_HOSTNAMES=cassandra
+      - CQL_PORT=9042
+      - SECRET=changeme-super-secret-key
+      - APPLICATION_SECRET=changeme-super-secret-key
+    volumes:
+      - thehive_files:/opt/thp/thehive/files
+    restart: unless-stopped
+    networks:
+      - socaas
+
 volumes:
   esdata:
+    name: socaas_for_smes_esdata
   wazuh_data:
+    name: socaas_for_smes_wazuh_data
   wazuh_logs:
+    name: socaas_for_smes_wazuh_logs
   n8n_data:
+    name: socaas_for_smes_n8n_data
+  thehive-cassandra-data:
+    name: socaas_for_smes_thehive-cassandra-data
+  thehive_files:
+    name: socaas_for_smes_thehive_files
 
 networks:
   socaas:

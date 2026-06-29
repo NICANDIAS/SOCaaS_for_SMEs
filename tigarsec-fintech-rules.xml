@@ -1,0 +1,61 @@
+<!-- ══════════════════════════════════════════
+     TIGARSEC FINTECH RULES
+     PCI-DSS mapped — payment/financial sector
+     Rule IDs: 100100 - 100199
+     ══════════════════════════════════════════ -->
+
+<group name="tigarsec,fintech,pci_dss,">
+
+  <!-- Failed sudo attempt -->
+  <rule id="100100" level="10">
+    <if_sid>5404</if_sid>
+    <description>TIGARSEC[Fintech]: Failed sudo attempt detected</description>
+    <group>privilege_escalation,pci_dss_10.2.4,</group>
+  </rule>
+
+  <!-- New file in critical directory -->
+  <rule id="100101" level="10">
+    <if_sid>554</if_sid>
+    <field name="file">/etc/cron|/etc/init.d|/usr/bin|/usr/sbin</field>
+    <description>TIGARSEC[Fintech]: New file in critical directory - $(file)</description>
+    <group>file_integrity,pci_dss_11.5,</group>
+  </rule>
+
+  <!-- After hours SSH login -->
+  <rule id="100102" level="10">
+    <if_sid>5715</if_sid>
+    <time>7 pm - 7 am</time>
+    <description>TIGARSEC[Fintech]: SSH login outside business hours</description>
+    <group>authentication_success,pci_dss_10.2.5,</group>
+  </rule>
+
+  <!-- SQL injection attempt -->
+  <rule id="100104" level="12">
+    <if_sid>31103</if_sid>
+    <description>TIGARSEC[Fintech]: SQL injection attempt detected</description>
+    <group>web_attack,pci_dss_6.5.1,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- Web vulnerability scanner -->
+  <rule id="100105" level="10">
+    <if_sid>31106</if_sid>
+    <description>TIGARSEC[Fintech]: Web vulnerability scanner detected</description>
+    <group>web_attack,pci_dss_6.5.1,</group>
+  </rule>
+
+  <!-- Web authentication failure - elevate existing rule -->
+  <rule id="100106" level="10">
+    <if_sid>31151</if_sid>
+    <description>TIGARSEC[Fintech]: Web authentication failure - possible credential stuffing</description>
+    <group>web_attack,authentication_failures,pci_dss_6.5.1,pci_dss_10.2.4,</group>
+  </rule>
+
+  <!-- Critical CVE with PCI-DSS tag -->
+  <rule id="100107" level="12">
+    <if_sid>23501</if_sid>
+    <field name="vulnerability.severity">Critical</field>
+    <description>TIGARSEC[Fintech]: Critical CVE - PCI-DSS 6.3.3 - $(vulnerability.cve)</description>
+    <group>vulnerability,pci_dss_6.3.3,</group>
+  </rule>
+
+</group>

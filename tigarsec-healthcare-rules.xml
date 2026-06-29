@@ -1,0 +1,17 @@
+<!-- ══════════════════════════════════════════
+     TIGARSEC HEALTHCARE RULES
+     HIPAA mapped — healthcare sector
+     Rule IDs: 100200 - 100299
+     PLACEHOLDER — rules added when client onboarded
+     ══════════════════════════════════════════ -->
+
+<group name="tigarsec,healthcare,hipaa,">
+
+  <rule id="100200" level="0">
+    <if_sid>1</if_sid>
+    <match>TIGARSEC_HEALTHCARE_PLACEHOLDER_NOMATCH</match>
+    <description>TIGARSEC[Healthcare]: Placeholder - not active</description>
+    <group>tigarsec,healthcare,</group>
+  </rule>
+
+</group>

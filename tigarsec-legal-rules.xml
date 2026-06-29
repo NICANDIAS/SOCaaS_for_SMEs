@@ -1,0 +1,18 @@
+<!-- ══════════════════════════════════════════
+     TIGARSEC LEGAL SECTOR RULES
+     SRA/ICO mapped — legal sector
+     Rule IDs: 100300 - 100399
+     PLACEHOLDER — rules added when client onboarded
+     ══════════════════════════════════════════ -->
+
+<group name="tigarsec,legal,sra,">
+
+  <!-- Placeholder — legal rules loaded per client -->
+  <rule id="100300" level="0">
+    <if_sid>1</if_sid>
+    <match>TIGARSEC_LEGAL_PLACEHOLDER</match>
+    <description>TIGARSEC[Legal]: Placeholder rule — not active</description>
+    <group>tigarsec,legal,</group>
+  </rule>
+
+</group>

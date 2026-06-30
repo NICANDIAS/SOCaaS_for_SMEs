@@ -11,18 +11,24 @@ services:
       - "9200:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
+    networks:
+      - socaas
     # Apple Silicon is fine; if you ever hit arch issues, uncomment:
     # platform: linux/arm64
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.14.2
-    #container_name: kibana
+    container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_BASEPATH=/kibana
+      - SERVER_REWRITEBASEPATH=true
     ports:
       - "5601:5601"
     depends_on:
       - elasticsearch
+    networks:
+      - socaas
     # platform: linux/arm64
 
   wazuh-manager:
@@ -117,6 +123,21 @@ services:
     volumes:
       - thehive_files:/opt/thp/thehive/files
     restart: unless-stopped
+    networks:
+      - socaas
+
+  nginx:
+    image: nginx:alpine
+    container_name: socaas-nginx
+    ports:
+      - "8080:80"
+      - "9001:9001"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - kibana
+      - n8n
+      - thehive
     networks:
       - socaas
 

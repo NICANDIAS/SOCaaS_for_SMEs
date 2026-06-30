@@ -1,0 +1,768 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wazuh-alerts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ab41534a-121b-4aa5-8aa6-c91da5faff81",
+      "name": "Webhook",
+      "webhookId": "6f96461a-1a45-4026-91ae-3a40a255bab9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9b14e6f6-56d4-4d54-964e-3b03cf6b85d1",
+              "leftValue": "={{ $json.body.rule.level }}",
+              "rightValue": 12,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "357989ca-3cb9-45ad-a87e-56f46d4b80ba",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{ \n  'https://api.callmebot.com/whatsapp.php?phone=YOUR_PHONE_NUMBER&text=' \n  + encodeURIComponent(\n      '⚠️ MEDIUM ALERT: ' \n      + $('Webhook').first().json.body.rule.description\n      + ' | Level: ' \n      + $('Webhook').first().json.body.rule.level\n      + ' | Agent: ' \n      + $('Webhook').first().json.body.agent.name\n      + ' | Source IP: ' \n      + $('Webhook').first().json.body.data.srcip\n      + ' | Time: '\n      + $('Webhook').first().json.body.timestamp\n  )\n  + '&apikey=YOUR_CALLMEBOT_APIKEY'\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        96
+      ],
+      "id": "45b349c5-f7be-4fe2-9f43-70ddef3d838d",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "resource": "case",
+        "caseFields": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $('Webhook').first().json.body.rule.description }}",
+            "description": "=Rule ID: {{ $('Webhook').first().json.body.rule.id }}\nLevel: {{ $('Webhook').first().json.body.rule.level }}\nAgent: {{ $('Webhook').first().json.body.agent.name }} ({{ $('Webhook').first().json.body.agent.ip }})\nSource IP: {{ $('Webhook').first().json.body.data.srcip }}\nTime: {{ $('Webhook').first().json.body.timestamp }}",
+            "severity": 2,
+            "tags": "wazuh",
+            "tlp": 2,
+            "pap": 2
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "displayName": "Title",
+              "id": "title",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Description",
+              "id": "description",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Severity (Severity of information)",
+              "id": "severity",
+              "type": "options",
+              "options": [
+                {
+                  "name": "Low",
+                  "value": 1
+                },
+                {
+                  "name": "Medium",
+                  "value": 2
+                },
+                {
+                  "name": "High",
+                  "value": 3
+                },
+                {
+                  "name": "Critical",
+                  "value": 4
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Start Date",
+              "id": "startDate",
+              "type": "dateTime",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "End Date",
+              "id": "endDate",
+              "type": "dateTime",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Tags",
+              "id": "tags",
+              "type": "string",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Flag",
+              "id": "flag",
+              "type": "boolean",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "TLP (Confidentiality of information)",
+              "id": "tlp",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "PAP (Level of exposure of information)",
+              "id": "pap",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Summary",
+              "id": "summary",
+              "type": "string",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Status",
+              "id": "status",
+              "type": "options",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "Duplicated",
+                  "value": "Duplicated",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "FalsePositive",
+                  "value": "FalsePositive",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "Indeterminate",
+                  "value": "Indeterminate",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "InProgress",
+                  "value": "InProgress",
+                  "description": "Stage: InProgress"
+                },
+                {
+                  "name": "New",
+                  "value": "New",
+                  "description": "Stage: New"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "TruePositive",
+                  "value": "TruePositive",
+                  "description": "Stage: Closed"
+                }
+              ]
+            },
+            {
+              "displayName": "Assignee",
+              "id": "assignee",
+              "type": "options",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "Abdulhakeem Ekun",
+                  "value": "ekun.abdulhakeem@gmail.com"
+                },
+                {
+                  "name": "wazuh-integration",
+                  "value": "talk2liltig4life@gmail.com"
+                }
+              ]
+            },
+            {
+              "displayName": "Case Template",
+              "id": "caseTemplate",
+              "type": "options",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": []
+            },
+            {
+              "displayName": "Tasks",
+              "id": "tasks",
+              "type": "array",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Sharing Parameters",
+              "id": "sharingParameters",
+              "type": "array",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Observable Rule",
+              "id": "observableRule",
+              "type": "string",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.theHiveProject",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -80
+      ],
+      "id": "8d05a8a8-d990-453d-b11e-229678ba5cca",
+      "name": "Create a case",
+      "credentials": {
+        "theHiveProjectApi": {
+          "id": "uANTNPxRXqYRflzh",
+          "name": "The Hive 5 account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.abuseipdb.com/api/v2/check",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "ipAddress",
+              "value": "={{ $('If').first().json.body.data.srcip }}"
+            },
+            {
+              "name": "maxAgeInDays",
+              "value": "90"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Key",
+              "value": "5b624c87618d66d04d5842934b87564baf01382d10659e93ba913ce3de52b93fb1fa487d31688bfe"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        -80
+      ],
+      "id": "63a9af2f-56c4-4478-a45e-4407a50c4d9f",
+      "name": "AbuseIPDB"
+    },
+    {
+      "parameters": {
+        "url": "={{ \n  'https://api.callmebot.com/whatsapp.php?phone=YOUR_PHONE_NUMBER&text=' \n  + encodeURIComponent(\n      '🚨 CRITICAL ALERT: ' \n      + $('Webhook').first().json.body.rule.description\n      + ' | Level: ' \n      + $('Webhook').first().json.body.rule.level\n      + ' | Agent: ' \n      + $('Webhook').first().json.body.agent.name\n      + ' | Source IP: ' \n      + $('Webhook').first().json.body.data.srcip\n      + ' | AbuseIPDB: ' \n      + $('AbuseIPDB').first().json.data.abuseConfidenceScore\n      + '% | Country: '\n      + $('AbuseIPDB').first().json.data.countryCode\n      + ' | ISP: '\n      + $('AbuseIPDB').first().json.data.isp\n      + ' | Reports: '\n      + $('AbuseIPDB').first().json.data.totalReports\n  )\n  + '&apikey=YOUR_CALLMEBOT_APIKEY'\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        832,
+        -80
+      ],
+      "id": "2e53f44c-5ca9-4d17-aac7-e76d3af437f3",
+      "name": "Whatapp Message"
+    },
+    {
+      "parameters": {
+        "resource": "case",
+        "caseFields": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ '[MEDIUM] ' + $('Webhook').first().json.body.rule.description }}",
+            "description": "=Rule ID: {{ $('Webhook').first().json.body.rule.id }}\nLevel: {{ $('Webhook').first().json.body.rule.level }}\nAgent: {{ $('Webhook').first().json.body.agent.name }} ({{ $('Webhook').first().json.body.agent.ip }})\nSource IP: {{ $('Webhook').first().json.body.data.srcip }}\nTime: {{ $('Webhook').first().json.body.timestamp }}",
+            "severity": 2,
+            "tags": "wazuh",
+            "tlp": 2,
+            "pap": 2
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "displayName": "Title",
+              "id": "title",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Description",
+              "id": "description",
+              "type": "string",
+              "removed": false,
+              "required": true,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Severity (Severity of information)",
+              "id": "severity",
+              "type": "options",
+              "options": [
+                {
+                  "name": "Low",
+                  "value": 1
+                },
+                {
+                  "name": "Medium",
+                  "value": 2
+                },
+                {
+                  "name": "High",
+                  "value": 3
+                },
+                {
+                  "name": "Critical",
+                  "value": 4
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Start Date",
+              "id": "startDate",
+              "type": "dateTime",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "End Date",
+              "id": "endDate",
+              "type": "dateTime",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Tags",
+              "id": "tags",
+              "type": "string",
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Flag",
+              "id": "flag",
+              "type": "boolean",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "TLP (Confidentiality of information)",
+              "id": "tlp",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "PAP (Level of exposure of information)",
+              "id": "pap",
+              "type": "options",
+              "options": [
+                {
+                  "name": "White",
+                  "value": 0
+                },
+                {
+                  "name": "Green",
+                  "value": 1
+                },
+                {
+                  "name": "Amber",
+                  "value": 2
+                },
+                {
+                  "name": "Red",
+                  "value": 3
+                }
+              ],
+              "removed": false,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Summary",
+              "id": "summary",
+              "type": "string",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Status",
+              "id": "status",
+              "type": "options",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "Duplicated",
+                  "value": "Duplicated",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "FalsePositive",
+                  "value": "FalsePositive",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "Indeterminate",
+                  "value": "Indeterminate",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "InProgress",
+                  "value": "InProgress",
+                  "description": "Stage: InProgress"
+                },
+                {
+                  "name": "New",
+                  "value": "New",
+                  "description": "Stage: New"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other",
+                  "description": "Stage: Closed"
+                },
+                {
+                  "name": "TruePositive",
+                  "value": "TruePositive",
+                  "description": "Stage: Closed"
+                }
+              ]
+            },
+            {
+              "displayName": "Assignee",
+              "id": "assignee",
+              "type": "options",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": [
+                {
+                  "name": "Abdulhakeem Ekun",
+                  "value": "ekun.abdulhakeem@gmail.com"
+                },
+                {
+                  "name": "wazuh-integration",
+                  "value": "talk2liltig4life@gmail.com"
+                }
+              ]
+            },
+            {
+              "displayName": "Case Template",
+              "id": "caseTemplate",
+              "type": "options",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false,
+              "options": []
+            },
+            {
+              "displayName": "Tasks",
+              "id": "tasks",
+              "type": "array",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Sharing Parameters",
+              "id": "sharingParameters",
+              "type": "array",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            },
+            {
+              "displayName": "Observable Rule",
+              "id": "observableRule",
+              "type": "string",
+              "removed": true,
+              "required": false,
+              "display": true,
+              "defaultMatch": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "n8n-nodes-base.theHiveProject",
+      "typeVersion": 1,
+      "position": [
+        672,
+        96
+      ],
+      "id": "ddc330cb-0b1a-47e4-8173-2dc270c0990a",
+      "name": "Create a case1",
+      "credentials": {
+        "theHiveProjectApi": {
+          "id": "uANTNPxRXqYRflzh",
+          "name": "The Hive 5 account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AbuseIPDB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a case": {
+      "main": [
+        [
+          {
+            "node": "Whatapp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AbuseIPDB": {
+      "main": [
+        [
+          {
+            "node": "Create a case",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whatapp Message": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Create a case1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9f1e5bff-feed-40af-905b-befbab6a4b41",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0815fc97b4e454b255c77618dcd69c987811349cc8a2b607f597b9e7945e86af"
+  },
+  "nodeGroups": [],
+  "id": "WXb5N1lWq8fQfZjF",
+  "tags": []
+}

@@ -1,117 +1,170 @@
-## 1. Security KPI Dashboard
+# Dashboards and Use Cases
 
-![Security KPI Dashboard](./images/dashboard-security-kpi.png)
+TIGARSEC SOCaaS ships with four production dashboards built on Kibana, designed for both day-to-day SOC operations and monthly client reporting. All dashboards use the `filebeat-*` index pattern which captures all Wazuh alerts shipped via Filebeat into Elasticsearch.
 
-**Purpose**  
-Provides a high-level overview of the lab’s overall security posture. It highlights total alerts, high/critical alerts, unique hosts generating alerts, authentication outcomes, and basic coverage metrics.
+---
 
-**Primary audience**  
-SOC Lead / SME Owner who needs a quick daily snapshot of risk and operational health rather than raw event logs.
+## Accessing the Dashboards
 
-**Key questions it answers**
-- Are we under attack?
-- Are things getting worse compared to yesterday?
-- What has changed in the last 24 hours?
-- How quickly are alerts being acknowledged or triaged?
+**URL:** `http://soc.local:8080/kibana/`
 
-**Data sources**
-- **Winlogbeat** (Windows Security & Sysmon) — `ds-winlogbeat-*`
-- **Filebeat** (Linux system/auth + Wazuh forwarded alerts) — `ds-filebeat-*`
+Navigate to **Analytics → Dashboards** in the left sidebar. Each dashboard is prefixed with `TIGARSEC -` for easy identification.
 
-**Main visualizations (panels)**
+If you have multiple client Spaces configured, switch between them using the Space selector (top left avatar) before opening dashboards — each Space shows only that client's data.
 
-1. **Alerts Over Time (rule.level ≥ 7)**  
-   Shows the volume and severity of alerts over time.  
-   *How to read:* sudden spikes may indicate bursts of suspicious activity or misconfigurations.  
-   *Action:* investigate time windows with unusual increases, correlate with host activity.
+---
 
-2. **Critical Alerts (rule.level ≥ 10)**  
-   Focuses on the most severe events.  
-   *How to read:* one critical alert may matter more than 100 low-severity ones.  
-   *Action:* treat red spikes as immediate triage tasks.
+## Dashboard 1 — Security Overview
 
-3. **Unique Hosts Generating Alerts**  
-   Identifies which hosts are producing alerts and how frequently.  
-   *How to read:* a single noisy host may indicate compromise, misconfiguration, or an aggressive application.  
-   *Action:* pivot into host-level telemetry and Wazuh rules affecting that host.
+**Purpose:** The primary operational view. Shows the full picture of what is happening across all monitored endpoints at a glance.
 
-4. **Authentication Outcomes (Success vs Failure)**  
-   Tracks login behavior across Windows/Linux systems.  
-   *How to read:* elevated failed logins suggest brute-force attempts or password spraying.  
-   *Action:* check SSH/Winlogon logs, correlate with source IP and Wazuh alerts.
+**Panels:**
 
-5. **EDR Coverage Overview**  
-   Shows which hosts have required agents (Wazuh, Beats, Sysmon) and whether logs are arriving as expected.  
-   *How to read:* missing hosts indicate coverage gaps.  
-   *Action:* verify agent installation or network connectivity.
+| Panel | Type | What it shows |
+|-------|------|----------------|
+| Total Alerts | Metric | Count of all alerts in the selected time range |
+| Critical Alerts | Metric | Count of alerts at level 12 and above |
+| Active Agents | Metric | Number of unique agents reporting |
+| Alert Volume Over Time | Area chart | Alert trend over time — spikes indicate incidents or scanning activity |
+| Alert Severity Distribution | Donut chart | Proportion of alerts by Wazuh level (3, 5, 7, 10, 12+) |
+| Top 10 Triggered Rules | Horizontal bar | Most frequently fired detection rules — identifies noisy or high-activity rules |
+| Top Source IPs / Users | Horizontal bar | Most active source users or IPs — useful for identifying attack sources or misconfigured accounts |
+| MITRE ATT&CK Tactics | Horizontal bar | ATT&CK tactic breakdown across all alerts — shows your detection coverage |
 
-**Example day / observation**
-- On **2025-10-02**, a spike in Wazuh alerts came from `WIN-AVEKJEPJI4` immediately after Sysmon installation.  
-- Most alerts were low/medium severity, indicating that tuning and noise reduction are still needed before a production-like setup.
+**Common use cases:**
 
-**Limitations / next improvements**
-- Suricata IDS/IPS data not yet integrated.  
-- Limited user-level aggregation — dashboards currently focus on hosts rather than business roles.  
-- No correlation panels yet (e.g., Wazuh alerts + raw logs + network events).
+- **Morning review:** Set time range to "Last 24 hours" — review total alert count, check if any critical alerts fired overnight, review any MITRE tactic spikes
+- **Incident investigation start point:** Spike in "Alert Volume Over Time" → click the spike to drill down to that time window → identify which rules fired
+- **Client monthly report:** Set time range to "Last 30 days" — screenshot for the executive summary section
 
+---
 
-## 2. Compliance Dashboard
+## Dashboard 2 — Authentication Dashboard
 
-![Compliance Dashboard - Panel Set 1](./images/dashboard-compliance1.png)
-![Compliance Dashboard - Panel Set 2](./images/dashboard-compliance2.png)
+**Purpose:** Focused view of all authentication activity. Essential for detecting brute force attacks, credential stuffing, privilege abuse, and after-hours access.
 
-### Purpose  
-Provides a consolidated view of endpoint compliance across the environment, including Security Configuration Assessment (SCA), Vulnerability status, and File Integrity Monitoring (FIM).  
-This dashboard highlights which hosts fail key compliance frameworks and what actions are required to restore compliance.
+**Panels:**
 
-### Primary Audience  
-SOC leads, SME owners, GRC teams, auditors, or anyone needing a quick compliance snapshot without digging into raw event logs.
+| Panel | Type | What it shows |
+|-------|------|----------------|
+| Total Failed Logins | Metric | Failed authentication count — baseline comparison between periods |
+| Failed Authentication Attempts | Area chart | Failed login trend — spikes indicate brute force or scanning |
+| Most Targeted Users | Horizontal bar | Accounts receiving the most failed login attempts |
+| Failed Logins by Agent | Horizontal bar | Which endpoints are experiencing the most authentication failures |
 
-### Key Questions This Dashboard Answers
-- Which hosts are **non-compliant** with major frameworks?
-- How many vulnerabilities exist, and how severe are they?
-- What is the current status of **SCA**, **FIM**, and **vulnerability scanning**?
-- Which frameworks show the highest failure rates? (NIST 800-53, ISO 27001:2013, SOC 2, PCI-DSS v3.2.1, CIS Controls v8)
-- Which hosts require immediate remediation?
-- How many checks failed vs passed across each framework?
+**Common use cases:**
 
-### Data Sources
-- **Windows & Linux telemetry** – via Winlogbeat and Filebeat (`ds-winlogbeat-*`, `ds-filebeat-*`)
-- **Wazuh alerts** – SCA, FIM, vulnerability, and compliance modules (`wazuh-*` or mapped to Filebeat indices)
+- **Brute force detection:** Spike in "Failed Authentication Attempts" combined with a single user dominating "Most Targeted Users" = brute force in progress — check TheHive for auto-created case
+- **Compromised account check:** Successful login appearing in logs after a long period of failures against the same account = potential credential compromise — escalate immediately
+- **User behaviour baseline:** Over time, this dashboard establishes what normal authentication patterns look like for a client, making anomalies easier to spot
+- **Fintech compliance:** PCI-DSS requirement 10.2.4 and 10.2.5 require logging of invalid access attempts and authentication events — this dashboard provides the evidence
 
-### Main Visualizations (Panels)
-1. **Framework non-compliance tiles**  
-   Shows the number of hosts failing each compliance standard.  
-   - *How to read:* Higher numbers = more hosts failing the framework.  
-   - *Action:* Prioritise remediation starting with most critical frameworks.
+**Key fields in Elasticsearch:**
 
-2. **“How to become compliant” guidance panel**  
-   Text panel summarising specific steps needed to fix common SCA/FIM/Vuln issues.  
-   - *How to read:* Follow per-OS and per-alert remediation notes.  
-   - *Action:* Apply patches, enable logging, modify SSH settings, allowlist legitimate file changes.
+- `rule.groups: authentication_failed` — all failed authentication events
+- `data.dstuser` — target account name
+- `data.srcip` — source IP address of the attempt
 
-3. **Top 50 hosts table (SCA / FIM / Vulnerabilities)**  
-   Shows host-level pass/fail results.  
-   - *How to read:* Green = compliant, Red = failing.  
-   - *Action:* Investigate red rows immediately — especially hosts with multiple categories failing.
+---
 
-4. **Framework Compliance Heatmap**  
-   Displays compliance per host across multiple frameworks.  
-   - *How to read:* Each cell represents pass/fail for a given host and framework.  
-   - *Action:* Identify hosts failing the most frameworks to prioritise risk reduction.
+## Dashboard 3 — PCI-DSS Compliance Dashboard
 
-5. **SCA Checks by Framework (Failed vs Non-failed)**  
-   A bar chart comparing failed vs passed SCA checks for each framework.  
-   - *How to read:* Long red bars = weak controls or misconfigurations.  
-   - *Action:* Start with frameworks showing the highest failure ratio.
+**Purpose:** Maps detected events to PCI-DSS control requirements. The primary dashboard for fintech clients and the centrepiece of quarterly compliance reporting.
 
-### Example Observations
-- On 2025-11-25, host `WIN-AVEKJEPJI4` failed PCI DSS and NIST 800-53 checks due to missing 4688 logging.
-- Linux host `kali` shows FIM and SCA passing, but no vulnerability data yet (scanner not fully configured).
-- Most non-compliance is currently driven by SCA failures rather than FIM.
+**Panels:**
 
+| Panel | Type | What it shows |
+|-------|------|----------------|
+| PCI-DSS Controls Triggered | Horizontal bar | Which PCI-DSS control references appeared in alerts (e.g. 10.2.4, 2.2, 11.5) |
+| PCI-DSS Alert Trend | Area chart | Volume of compliance-relevant alerts over time |
+| MITRE Tactics — Compliance Events | Horizontal bar | ATT&CK tactics seen in PCI-DSS tagged alerts |
+| Top Compliance Rules Triggered | Horizontal bar | Specific Wazuh rules generating the most compliance-relevant alerts |
+| Compliance Alerts by Agent | Horizontal bar | Which endpoints are generating the most compliance events |
 
-### Limitations & Next Improvements
-- No Suricata or network-based compliance signals yet.  
-- No integration with ticketing/workflow (e.g., Jira for compliance tasks).  
-- FIM coverage only includes default monitored paths — expansion recommended.  
+**Common use cases:**
+
+- **Quarterly compliance report:** Set time range to "Last 90 days" — export as PDF or screenshot each panel for the compliance section of your client report
+- **Auditor evidence:** When an auditor asks "show me evidence of monitoring for PCI-DSS 10.2.4 (invalid access attempts)", point to this dashboard filtered by that control
+- **Gap identification:** If a PCI-DSS control is absent from the "Controls Triggered" panel over a long period, it may indicate either no relevant events (good) or a gap in detection coverage (worth investigating)
+- **Incident mapping:** When an incident occurs, check which PCI-DSS controls it touched — required for breach notification assessment
+
+**Key PCI-DSS controls covered:**
+
+| Control | Description | Wazuh rules covering it |
+|---------|-------------|--------------------------|
+| 2.2 | System configuration standards | SSH config, default settings alerts |
+| 10.2.4 | Invalid logical access attempts | Failed authentication rules |
+| 10.2.5 | Use of privileged accounts | Sudo, root login rules |
+| 10.6.1 | Log review | Agent health, log collection rules |
+| 11.5 | File integrity monitoring | FIM alerts on critical paths |
+| 6.3.3 | Security vulnerabilities | CVE detection rules |
+
+---
+
+## Dashboard 4 — Agent Health Dashboard
+
+**Purpose:** Operational health view of all monitored endpoints. Answers "are all the machines we're supposed to be monitoring actually reporting?"
+
+**Panels:**
+
+| Panel | Type | What it shows |
+|-------|------|----------------|
+| Active Agents | Metric | Total number of unique agents that have reported in the selected time range |
+| Alert Volume by Agent | Horizontal bar | Which endpoints are generating the most alerts — outliers worth investigating |
+| Agent Last Seen | Data table | Each agent name and the timestamp of their most recent event |
+
+**Common use cases:**
+
+- **Daily health check:** Open this dashboard first thing — if an agent's "last seen" timestamp is more than a few hours old and it should be active, investigate why it stopped reporting
+- **Client onboarding verification:** After installing agents on a new client's endpoints, use this dashboard to confirm all expected agents are reporting before declaring go-live
+- **Incident scoping:** When an incident is detected, check this dashboard to confirm all agents in scope are actively reporting — a silent agent during an incident is itself suspicious
+- **SLA evidence:** Screenshot this dashboard monthly to show the client that all their endpoints remained monitored throughout the reporting period
+
+**Agent status interpretation:**
+
+| Last seen | Status | Action |
+|-----------|--------|--------|
+| < 1 hour | Active | Normal |
+| 1 - 24 hours | Possibly idle | Monitor — may be a powered-off workstation |
+| > 24 hours | Potentially disconnected | Investigate — check agent service on endpoint |
+| Not appearing | Never connected | Agent install may have failed — reinstall |
+
+---
+
+## Time Range Guidance
+
+Kibana's time range selector (top right) controls what period all panels show. Recommended settings:
+
+| Use case | Time range |
+|----------|------------|
+| Daily monitoring | Last 24 hours |
+| Weekly review | Last 7 days |
+| Monthly client report | Last 30 days |
+| Quarterly compliance | Last 90 days |
+| Historical investigation | Custom range |
+
+All four dashboards are saved with "Last 1 year" as the default to ensure historical data is always visible.
+
+---
+
+## Importing Dashboards into a New Client Space
+
+When creating a new client Kibana Space, dashboards must be copied across. See the [Client Onboarding Runbook](../TIGARSEC-Client-Onboarding-Runbook.docx) for the full process. Quick steps:
+
+1. Switch to the Default Space
+2. Go to Stack Management → Saved Objects
+3. Find the four TIGARSEC dashboards
+4. Click `···` → Copy to Space → select the client's Space
+5. Switch to the client Space and apply agent filter: `agent.name : [shortname]-*`
+
+---
+
+## Dashboard Exports
+
+The exported dashboard definitions are stored in the repository at:
+
+```
+kibana-dashboards/tigarsec-dashboards.ndjson
+```
+
+This file can be imported into any fresh Kibana instance via Stack Management → Saved Objects → Import. This makes the dashboards fully reproducible and version-controlled alongside the rest of the platform configuration.

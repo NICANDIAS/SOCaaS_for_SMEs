@@ -22,7 +22,8 @@ Run the following in **PowerShell as Administrator**. Replace `MANAGER_IP` and `
 ```powershell
 Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.13.0-1.msi -OutFile wazuh-agent.msi
 
-Start-Process msiexec.exe -Wait -ArgumentList '/i wazuh-agent.msi /q WAZUH_MANAGER=MANAGER_IP WAZUH_AGENT_GROUP=client-[shortname]'
+$hostname = $env:COMPUTERNAME.ToLower()
+Start-Process msiexec.exe -Wait -ArgumentList "/i wazuh-agent.msi /q WAZUH_MANAGER=MANAGER_IP WAZUH_AGENT_GROUP=client-[shortname]  WAZUH_AGENT_NAME=[shortname]-$hostname"
 
 NET START WazuhSvc
 ```
@@ -60,6 +61,7 @@ curl -so wazuh-agent.deb https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-ag
 
 sudo WAZUH_MANAGER=MANAGER_IP \
      WAZUH_AGENT_GROUP=client-[shortname] \
+     WAZUH_AGENT_NAME=[shortname]-$(hostname) \
      dpkg -i ./wazuh-agent.deb
 
 sudo systemctl enable --now wazuh-agent
@@ -92,6 +94,7 @@ curl -so wazuh-agent.pkg https://packages.wazuh.com/4.x/macos/wazuh-agent-4.13.0
 
 sudo launchctl setenv WAZUH_MANAGER 'MANAGER_IP'
 sudo launchctl setenv WAZUH_AGENT_GROUP 'client-[shortname]'
+sudo launchctl setenv WAZUH_AGENT_NAME "[shortname]-$(hostname -s)"
 
 sudo installer -pkg wazuh-agent.pkg -target /
 
@@ -140,9 +143,9 @@ TIGARSEC uses a consistent naming convention for all agents. This enables dashbo
 
 | Format | Example |
 |--------|---------|
-| `[shortname]-[role]-[number]` | `alpha-server-01` |
-| `[shortname]-[role]-[number]` | `alpha-laptop-03` |
-| `[shortname]-[role]-[number]` | `alpha-dc-01` |
+| `[shortname]-[hostname]` | `alpha-FINANCE-SERVER` |
+| `[shortname]-[hostname]` | `alpha-reception-pc` |
+| `[shortname]-[hostname]` | `alpha-dc01` |
 
 With this convention, the Kibana dashboard filter `agent.name : alpha-*` automatically includes all of a client's agents regardless of how many exist.
 

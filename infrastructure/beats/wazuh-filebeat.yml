@@ -12,6 +12,8 @@ processors:
         module: wazuh
 
 output.elasticsearch:
-  hosts: ["http://host.docker.internal:9200"]
-setup.ilm.enabled: false
+  hosts: ["http://elasticsearch:9200"]
+  username: "beats_system"
+  password: "${BEATS_PASSWORD}"
 
+setup.ilm.enabled: false

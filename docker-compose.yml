@@ -23,6 +23,8 @@ services:
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - SERVER_BASEPATH=/kibana
       - SERVER_REWRITEBASEPATH=true
     ports:
@@ -68,9 +70,13 @@ services:
       - wazuh-manager
     user: root
     command: ["--strict.perms=false"]
+    environment:
+      - BEATS_PASSWORD=${BEATS_PASSWORD}
     volumes:
       - ./infrastructure/beats/wazuh-filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - wazuh_logs:/var/ossec/logs:ro
+    networks:
+      - socaas
 
   n8n:
     image: n8nio/n8n:latest
@@ -120,8 +126,8 @@ services:
     environment:
       - CQL_HOSTNAMES=cassandra
       - CQL_PORT=9042
-      - SECRET=changeme-super-secret-key
-      - APPLICATION_SECRET=changeme-super-secret-key
+      - SECRET=${THEHIVE_SECRET}
+      - APPLICATION_SECRET=${THEHIVE_SECRET}
     volumes:
       - thehive_files:/opt/thp/thehive/files
     restart: unless-stopped

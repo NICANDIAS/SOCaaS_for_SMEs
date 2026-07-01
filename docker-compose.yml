@@ -9,8 +9,6 @@ services:
       - xpack.security.authc.api_key.enabled=true
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ES_JAVA_OPTS=-Xms2g -Xmx2g
-    ports:
-      - "9200:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
     networks:
@@ -27,8 +25,6 @@ services:
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - SERVER_BASEPATH=/kibana
       - SERVER_REWRITEBASEPATH=true
-    ports:
-      - "5601:5601"
     depends_on:
       - elasticsearch
     networks:
@@ -49,7 +45,6 @@ services:
       - "1514:1514" # TCP
       - "1514:1514/udp" # (optional) UDP
       - "1515:1515"
-      - "55000:55000"
     volumes:
       - wazuh_data:/var/ossec/data
       - wazuh_logs:/var/ossec/logs
@@ -81,8 +76,6 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
-    ports:
-      - "5678:5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
@@ -90,6 +83,7 @@ services:
       - N8N_HOST=localhost
       - N8N_PORT=5678
       - WEBHOOK_URL=http://localhost:5678/
+      - N8N_SECURE_COOKIE=false
     volumes:
       - n8n_data:/home/node/.n8n
     restart: unless-stopped
@@ -121,8 +115,6 @@ services:
     depends_on:
       cassandra:
         condition: service_healthy
-    ports:
-      - "9000:9000"
     environment:
       - CQL_HOSTNAMES=cassandra
       - CQL_PORT=9042
@@ -140,6 +132,7 @@ services:
     ports:
       - "8080:80"
       - "9001:9001"
+      - "5679:5679"
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIGARSEC SOC Portal</title>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #1c2230;
+    --border:    #21262d;
+    --border2:   #30363d;
+    --text:      #e6edf3;
+    --muted:     #7d8590;
+    --accent:    #e05d28;
+    --accent2:   #f0722a;
+    --blue:      #2ea0ff;
+    --green:     #3fb950;
+    --yellow:    #d29922;
+    --red:       #f85149;
+    --purple:    #8b5cf6;
+    --mono:      'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    --sans:      -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --radius:    8px;
+    --radius-lg: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-icon svg { width: 20px; height: 20px; fill: white; }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .clock {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--green);
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.25);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px;
+  }
+
+  /* ── THREAT LEVEL ── */
+  .threat-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    transition: border-color 0.4s;
+  }
+
+  .threat-banner.level-ok     { border-color: var(--green);  }
+  .threat-banner.level-medium { border-color: var(--yellow); }
+  .threat-banner.level-high   { border-color: var(--accent); }
+  .threat-banner.level-critical { border-color: var(--red); animation: flash-border 1.5s infinite; }
+
+  @keyframes flash-border {
+    0%, 100% { border-color: var(--red); }
+    50% { border-color: rgba(248, 81, 73, 0.3); }
+  }
+
+  .threat-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .threat-indicator {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: background 0.4s, color 0.4s;
+  }
+
+  .threat-indicator.ok       { background: rgba(63,185,80,0.15);  color: var(--green);  border: 2px solid var(--green); }
+  .threat-indicator.medium   { background: rgba(210,153,34,0.15); color: var(--yellow); border: 2px solid var(--yellow); }
+  .threat-indicator.high     { background: rgba(224,93,40,0.15);  color: var(--accent); border: 2px solid var(--accent); }
+  .threat-indicator.critical { background: rgba(248,81,73,0.15);  color: var(--red);    border: 2px solid var(--red); }
+
+  .threat-info h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .threat-info p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .threat-time {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .stat-value.loading {
+    color: var(--border2);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .stat-card.critical .stat-value { color: var(--red); }
+  .stat-card.medium   .stat-value { color: var(--yellow); }
+  .stat-card.agents   .stat-value { color: var(--green); }
+  .stat-card.cases    .stat-value { color: var(--purple); }
+
+  /* ── BOTTOM GRID ── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  /* ── SERVICE CARDS ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .panel-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .service-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .service-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+
+  .service-card:hover {
+    border-color: var(--border2);
+    background: #1f2937;
+  }
+
+  .service-card.admin-only {
+    display: none;
+  }
+
+  .service-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  .service-icon.kibana  { background: rgba(0, 138, 190, 0.15); }
+  .service-icon.n8n     { background: rgba(224, 93, 40, 0.15); }
+  .service-icon.thehive { background: rgba(139, 92, 246, 0.15); }
+  .service-icon.wazuh   { background: rgba(248, 81, 73, 0.15); }
+
+  .service-info { flex: 1; min-width: 0; }
+
+  .service-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .service-desc {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .service-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .service-status.up   { color: var(--green); }
+  .service-status.down { color: var(--red); }
+  .service-status.checking { color: var(--muted); }
+
+  .sdot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .sdot.up { animation: pulse 2s infinite; }
+
+  /* ── RECENT ALERTS ── */
+  .alert-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .alert-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .alert-level {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .alert-level.critical { background: rgba(248,81,73,0.15);  color: var(--red);    border: 1px solid rgba(248,81,73,0.3); }
+  .alert-level.high     { background: rgba(224,93,40,0.15);  color: var(--accent); border: 1px solid rgba(224,93,40,0.3); }
+  .alert-level.medium   { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+  .alert-level.low      { background: rgba(125,133,144,0.1); color: var(--muted);  border: 1px solid var(--border); }
+
+  .alert-body { flex: 1; min-width: 0; }
+
+  .alert-desc {
+    font-size: 12px;
+    color: var(--text);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .alert-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+  }
+
+  .alert-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .no-alerts {
+    padding: 28px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .no-alerts .icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 20px 28px;
+    color: var(--muted);
+    font-size: 11px;
+    font-family: var(--mono);
+    border-top: 1px solid var(--border);
+    margin-top: 28px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .bottom-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    main { padding: 16px; }
+    header { padding: 12px 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .threat-time { display: none; }
+  }
+
+  /* ── REDUCED MOTION ── */
+  @media (prefers-reduced-motion: reduce) {
+    .status-dot, .sdot.up { animation: none; }
+    .threat-banner.level-critical { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">TIGARSEC SOCaaS</span>
+      <span class="brand-sub" id="host-label">soc.local — loading...</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="clock" id="clock">--:--:-- UTC</span>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      <span>Monitoring active</span>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- THREAT LEVEL BANNER -->
+  <div class="threat-banner level-ok" id="threat-banner">
+    <div class="threat-left">
+      <div class="threat-indicator ok" id="threat-indicator">—</div>
+      <div class="threat-info">
+        <h2 id="threat-label">Checking threat level...</h2>
+        <p id="threat-desc">Querying Elasticsearch for current alert state</p>
+      </div>
+    </div>
+    <div class="threat-time">
+      <div>Last checked</div>
+      <div id="threat-updated" style="color: var(--text); font-size: 13px;">—</div>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total alerts — 24h</div>
+      <div class="stat-value loading" id="stat-total">···</div>
+      <div class="stat-sub">All severity levels</div>
+    </div>
+    <div class="stat-card critical">
+      <div class="stat-label">Critical alerts — 24h</div>
+      <div class="stat-value loading" id="stat-critical">···</div>
+      <div class="stat-sub">Level 12 and above</div>
+    </div>
+    <div class="stat-card medium">
+      <div class="stat-label">Medium alerts — 24h</div>
+      <div class="stat-value loading" id="stat-medium">···</div>
+      <div class="stat-sub">Level 7 – 11</div>
+    </div>
+    <div class="stat-card agents">
+      <div class="stat-label">Active agents</div>
+      <div class="stat-value loading" id="stat-agents">···</div>
+      <div class="stat-sub">Reporting in last 24h</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM GRID -->
+  <div class="bottom-grid">
+
+    <!-- SERVICES -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Services</span>
+        <span class="panel-sub" id="space-label">Default space</span>
+      </div>
+      <div class="service-list">
+
+        <a class="service-card" href="/kibana/" target="_blank" id="svc-kibana">
+          <div class="service-icon kibana">📊</div>
+          <div class="service-info">
+            <div class="service-name">Kibana</div>
+            <div class="service-desc">Dashboards · alerts · compliance · agent health</div>
+          </div>
+          <div class="service-status checking" id="status-kibana">
+            <div class="sdot"></div> checking
+          </div>
+        </a>
+
+        <a class="service-card" href="http://soc.local:9001/" target="_blank" id="svc-thehive">
+          <div class="service-icon thehive">🐝</div>
+          <div class="service-info">
+            <div class="service-name">TheHive</div>
+            <div class="service-desc">Case management · incident log · audit trail</div>
+          </div>
+          <div class="service-status checking" id="status-thehive">
+            <div class="sdot"></div> checking
+          </div>
+        </a>
+
+        <a class="service-card admin-only" href="http://soc.local:5679/" target="_blank" id="svc-n8n">
+          <div class="service-icon n8n">⚙️</div>
+          <div class="service-info">
+            <div class="service-name">n8n — SOAR</div>
+            <div class="service-desc">Automation · triage workflows · alert routing</div>
+          </div>
+          <div class="service-status checking" id="status-n8n">
+            <div class="sdot"></div> checking
+          </div>
+        </a>
+
+        <div class="service-card" style="cursor: default;">
+          <div class="service-icon wazuh">🛡️</div>
+          <div class="service-info">
+            <div class="service-name">Wazuh Manager</div>
+            <div class="service-desc">Detection engine · rules · FIM · CVE scanning</div>
+          </div>
+          <div class="service-status checking" id="status-wazuh">
+            <div class="sdot"></div> checking
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RECENT ALERTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Recent alerts</span>
+        <span class="panel-sub">Last 10 · level 7+</span>
+      </div>
+      <div class="alert-list" id="alert-list">
+        <div class="no-alerts">
+          <div class="icon">⏳</div>
+          Loading recent alerts...
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  TIGARSEC SOCaaS &nbsp;·&nbsp; Internal portal &nbsp;·&nbsp; <span id="footer-time">—</span>
+</footer>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const ES_URL    = '/es';   // proxied through Nginx
+const KIBANA_URL = '/kibana';
+const THEHIVE_URL = 'http://soc.local:9001';
+const REFRESH_MS = 30000; // refresh every 30 seconds
+
+// ── ROLE DETECTION ────────────────────────────────────────────────
+// Show n8n link only when accessed from localhost (admin)
+const isAdmin = ['localhost', '127.0.0.1', 'soc.local'].includes(location.hostname);
+if (isAdmin) {
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const utc = now.toUTCString().split(' ')[4];
+  document.getElementById('clock').textContent = utc + ' UTC';
+  document.getElementById('footer-time').textContent =
+    now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── HOST LABEL ────────────────────────────────────────────────────
+document.getElementById('host-label').textContent =
+  location.hostname + ' — ' + (isAdmin ? 'admin session' : 'analyst session');
+
+// ── THREAT LEVEL ──────────────────────────────────────────────────
+function setThreatLevel(maxLevel) {
+  const banner    = document.getElementById('threat-banner');
+  const indicator = document.getElementById('threat-indicator');
+  const label     = document.getElementById('threat-label');
+  const desc      = document.getElementById('threat-desc');
+
+  const levels = ['level-ok','level-medium','level-high','level-critical'];
+  const indics = ['ok','medium','high','critical'];
+  banner.classList.remove(...levels);
+  indicator.classList.remove(...indics);
+
+  if (maxLevel === 0) {
+    banner.classList.add('level-ok');
+    indicator.classList.add('ok');
+    indicator.textContent = '✓';
+    label.textContent = 'All clear';
+    desc.textContent = 'No alerts above level 7 in the last 24 hours';
+  } else if (maxLevel <= 9) {
+    banner.classList.add('level-medium');
+    indicator.classList.add('medium');
+    indicator.textContent = maxLevel;
+    label.textContent = 'Medium activity';
+    desc.textContent = 'Medium severity alerts detected — no immediate action required';
+  } else if (maxLevel <= 11) {
+    banner.classList.add('level-high');
+    indicator.classList.add('high');
+    indicator.textContent = maxLevel;
+    label.textContent = 'High severity alert';
+    desc.textContent = 'High severity event detected — review TheHive for open cases';
+  } else {
+    banner.classList.add('level-critical');
+    indicator.classList.add('critical');
+    indicator.textContent = maxLevel;
+    label.textContent = 'CRITICAL — immediate attention required';
+    desc.textContent = 'Critical alert active — check TheHive and WhatsApp for case details';
+  }
+
+  document.getElementById('threat-updated').textContent =
+    new Date().toISOString().replace('T',' ').substring(11,19) + ' UTC';
+}
+
+// ── ELASTICSEARCH QUERIES ─────────────────────────────────────────
+async function queryES(path, body) {
+  try {
+    const r = await fetch(`/kibana/api/console/proxy?path=${encodeURIComponent(path)}&method=POST`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'kbn-xsrf': 'true'
+      },
+      body: JSON.stringify(body),
+      credentials: 'include'
+    });
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch(e) {
+    console.error('ES query failed:', e);
+    return null;
+  }
+}
+
+function el(id) { return document.getElementById(id); }
+
+function setNum(id, val, fallback='—') {
+  const node = el(id);
+  node.classList.remove('loading');
+  node.textContent = val !== null && val !== undefined ? val.toLocaleString() : fallback;
+}
+
+// ── LOAD STATS ────────────────────────────────────────────────────
+async function loadStats() {
+  const now = new Date();
+  const ago24 = new Date(now - 86400000).toISOString();
+
+  // Total alerts 24h
+  const total = await queryES('filebeat-*/_count', {
+    query: { range: { '@timestamp': { gte: ago24 } } }
+  });
+  setNum('stat-total', total?.count ?? null);
+
+  // Critical alerts 24h
+  const crit = await queryES('filebeat-*/_count', {
+    query: { bool: { must: [
+      { range: { '@timestamp': { gte: ago24 } } },
+      { range: { 'rule.level': { gte: 12 } } }
+    ]}}
+  });
+  setNum('stat-critical', crit?.count ?? null);
+
+  // Medium alerts 24h
+  const med = await queryES('filebeat-*/_count', {
+    query: { bool: { must: [
+      { range: { '@timestamp': { gte: ago24 } } },
+      { range: { 'rule.level': { gte: 7, lte: 11 } } }
+    ]}}
+  });
+  setNum('stat-medium', med?.count ?? null);
+
+  // Active agents 24h
+  const agents = await queryES('filebeat-*/_search', {
+    size: 0,
+    query: { range: { '@timestamp': { gte: ago24 } } },
+    aggs: { agents: { cardinality: { field: 'agent.name' } } }
+  });
+  setNum('stat-agents', agents?.aggregations?.agents?.value ?? null);
+
+  // Max level for threat indicator
+  const maxQ = await queryES('filebeat-*/_search', {
+    size: 1,
+    query: { bool: { must: [
+      { range: { '@timestamp': { gte: ago24 } } },
+      { range: { 'rule.level': { gte: 7 } } }
+    ]}},
+    sort: [{ 'rule.level': { order: 'desc' } }],
+    _source: ['rule.level']
+  });
+  const maxLevel = maxQ?.hits?.hits?.[0]?._source?.rule?.level ?? 0;
+  setThreatLevel(maxLevel);
+}
+async function loadAlerts() {
+  const ago24 = new Date(Date.now() - 86400000).toISOString();
+  const data = await queryES('filebeat-*/_search', {
+    size: 10,
+    query: { bool: { must: [
+      { range: { '@timestamp': { gte: ago24 } } },
+      { range: { 'rule.level': { gte: 7 } } }
+    ]}},
+    sort: [{ '@timestamp': { order: 'desc' } }],
+    _source: ['rule.level','rule.description','agent.name','data.srcip','@timestamp']
+  });
+
+  const list = el('alert-list');
+  const hits = data?.hits?.hits ?? [];
+
+  if (!hits.length) {
+    list.innerHTML = `<div class="no-alerts">
+      <div class="icon">✅</div>
+      No alerts above level 7 in the last 24 hours
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = hits.map(h => {
+    const s = h._source;
+    const level = s.rule?.level ?? 0;
+    const desc  = s.rule?.description ?? 'Unknown rule';
+    const agent = s.agent?.name ?? 'unknown';
+    const srcip = s.data?.srcip ?? '';
+    const ts    = s['@timestamp'] ? new Date(s['@timestamp']) : null;
+    const ago   = ts ? timeAgo(ts) : '—';
+
+    let cls = level >= 12 ? 'critical' : level >= 10 ? 'high' : level >= 7 ? 'medium' : 'low';
+
+    return `<div class="alert-row">
+      <div class="alert-level ${cls}">${level}</div>
+      <div class="alert-body">
+        <div class="alert-desc">${escHtml(desc)}</div>
+        <div class="alert-meta">
+          <span>🖥 ${escHtml(agent)}</span>
+          ${srcip ? `<span>🌐 ${escHtml(srcip)}</span>` : ''}
+        </div>
+      </div>
+      <div class="alert-time">${ago}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── SERVICE HEALTH CHECKS ─────────────────────────────────────────
+async function checkServices() {
+  // Kibana — check via the basepath API
+  try {
+    const r = await fetch('/kibana/api/status', { credentials: 'include' });
+    setServiceStatus('kibana', r.ok);
+  } catch { setServiceStatus('kibana', false); }
+
+  // TheHive — check via a simple API ping
+  try {
+    const r = await fetch('http://soc.local:9001/api/status', { mode: 'no-cors' });
+    // no-cors means we get opaque response — if no throw, it connected
+    setServiceStatus('thehive', true);
+  } catch { setServiceStatus('thehive', false); }
+
+  // n8n — try to reach it
+  if (isAdmin) {
+    try {
+      const r = await fetch('http://soc.local:5679/healthz', { mode: 'no-cors' });
+      setServiceStatus('n8n', true);
+    } catch { setServiceStatus('n8n', false); }
+  }
+
+  // Wazuh — we can't directly ping it from browser, mark as active if ES is working
+  const esOk = el('stat-total').textContent !== '···' && el('stat-total').textContent !== '—';
+  setServiceStatus('wazuh', esOk);
+}
+
+function setServiceStatus(name, up) {
+  const el2 = el('status-' + name);
+  if (!el2) return;
+  el2.className = 'service-status ' + (up ? 'up' : 'down');
+  el2.innerHTML = `<div class="sdot ${up ? 'up' : ''}"></div> ${up ? 'online' : 'unreachable'}`;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function timeAgo(date) {
+  const diff = Math.floor((Date.now() - date) / 1000);
+  if (diff < 60)  return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+
+// ── INIT & REFRESH ────────────────────────────────────────────────
+async function refresh() {
+  await Promise.all([loadStats(), loadAlerts()]);
+  await checkServices();
+}
+
+refresh();
+setInterval(refresh, REFRESH_MS);
+</script>
+</body>
+</html>

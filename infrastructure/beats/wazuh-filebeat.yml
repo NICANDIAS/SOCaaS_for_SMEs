@@ -13,7 +13,7 @@ processors:
 
 output.elasticsearch:
   hosts: ["http://elasticsearch:9200"]
-  username: "beats_system"
-  password: "${BEATS_PASSWORD}"
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
 
 setup.ilm.enabled: false
